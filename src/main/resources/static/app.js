@@ -19,6 +19,36 @@ var app = (function () {
         ctx.stroke();
     };
 
+    var drawPolygon = function(points) {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        console.log("Dibujando polígono con puntos:", points);
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        // Conectar con el resto de puntos
+        for (var i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        // Cerrar el polígono conectando con el primer punto
+        ctx.lineTo(points[0].x, points[0].y);
+
+        // Estilo del polígono
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Rellenar con color semitransparente
+        ctx.fillStyle = "rgba(0, 0, 255, 0.2)";
+        ctx.fill();
+
+        // Restaurar estilo de dibujo para puntos
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+    };
+
     var getMousePosition = function (evt) {
         var canvas = document.getElementById("canvas");
         var rect = canvas.getBoundingClientRect();
@@ -47,19 +77,26 @@ var app = (function () {
             console.log(str);
         };
 
-        // Crear tópico dinámico basado en el ID del dibujo
-        var topic = '/topic/newpoint.' + drawingId;
-
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
 
-            stompClient.subscribe(topic, function (eventbody) {
-                console.log('Mensaje recibido en ' + topic + ':', eventbody.body);
+            // Suscripción al tópico de nuevos puntos
+            var pointTopic = '/topic/newpoint.' + drawingId;
+            stompClient.subscribe(pointTopic, function (eventbody) {
+                console.log('Punto recibido en ' + pointTopic + ':', eventbody.body);
                 var point = JSON.parse(eventbody.body);
                 addPointToCanvas(point);
             });
 
-            console.log('Suscripción completada al tópico ' + topic);
+            // Suscripción al tópico de nuevos polígonos
+            var polygonTopic = '/topic/newpolygon.' + drawingId;
+            stompClient.subscribe(polygonTopic, function (eventbody) {
+                console.log('Polígono recibido en ' + polygonTopic + ':', eventbody.body);
+                var points = JSON.parse(eventbody.body);
+                drawPolygon(points);
+            });
+
+            console.log('Suscripciones completadas');
             document.getElementById("status").innerText = "Conectado al dibujo #" + drawingId;
             document.getElementById("connectBtn").disabled = true;
             document.getElementById("drawingId").disabled = true;
@@ -124,10 +161,10 @@ var app = (function () {
 
             // Verificar que el cliente STOMP esté conectado
             if (stompClient && stompClient.connected) {
-                // Publicar el punto a otros clientes usando el tópico dinámico
-                var topic = '/topic/newpoint.' + drawingId;
-                stompClient.send(topic, {}, JSON.stringify(pt));
-                console.log("Punto enviado por STOMP a " + topic);
+                // Enviar al endpoint del controlador
+                var destination = '/app/newpoint.' + drawingId;
+                stompClient.send(destination, {}, JSON.stringify(pt));
+                console.log("Punto enviado por STOMP a " + destination);
             } else {
                 console.error("Error: STOMP no está conectado, no se puede enviar el punto");
             }
