@@ -2,6 +2,7 @@
     border: 1px solid black;
     background-color: #f8f8f8;
     cursor: crosshair;
+    margin-top: 20px;
 }
 
 h1 {
@@ -15,4 +16,34 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.controls {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#drawingId {
+    width: 60px;
+    padding: 5px;
+}
+
+#connectBtn {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#connectBtn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#status {
+    margin-left: 10px;
+    font-weight: bold;
 }

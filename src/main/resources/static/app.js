@@ -8,6 +8,7 @@ var app = (function () {
     }
 
     var stompClient = null;
+    var drawingId = null;
 
     var addPointToCanvas = function (point) {
         var canvas = document.getElementById("canvas");
@@ -29,6 +30,15 @@ var app = (function () {
 
     var connectAndSubscribe = function () {
         console.info('Connecting to WS...');
+
+        // Obtener el ID del dibujo
+        drawingId = document.getElementById("drawingId").value;
+
+        if (!drawingId) {
+            alert("Por favor ingrese un ID de dibujo válido");
+            return false;
+        }
+
         var socket = new SockJS('/stompendpoint');
         stompClient = Stomp.over(socket);
 
@@ -37,18 +47,35 @@ var app = (function () {
             console.log(str);
         };
 
+        // Crear tópico dinámico basado en el ID del dibujo
+        var topic = '/topic/newpoint.' + drawingId;
+
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/newpoint', function (eventbody) {
-                console.log('Mensaje recibido:', eventbody.body);
+
+            stompClient.subscribe(topic, function (eventbody) {
+                console.log('Mensaje recibido en ' + topic + ':', eventbody.body);
                 var point = JSON.parse(eventbody.body);
                 addPointToCanvas(point);
             });
-            console.log('Suscripción completada al tópico /topic/newpoint');
+
+            console.log('Suscripción completada al tópico ' + topic);
+            document.getElementById("status").innerText = "Conectado al dibujo #" + drawingId;
+            document.getElementById("connectBtn").disabled = true;
+            document.getElementById("drawingId").disabled = true;
+
+            // Habilitar los eventos del canvas solo después de conectarse
+            setupCanvasEvents();
+
+            return true;
         }, function(error) {
             // Callback de error de conexión
             console.error("Error de conexión STOMP:", error);
+            document.getElementById("status").innerText = "Error de conexión";
+            return false;
         });
+
+        return true;
     };
 
     var setupCanvasEvents = function() {
@@ -78,11 +105,14 @@ var app = (function () {
             }
             console.log("Canvas encontrado correctamente");
 
-            // Inicializar conexión websocket
-            connectAndSubscribe();
-            // Configurar eventos del canvas
-            setupCanvasEvents();
+            // Ya no nos conectamos automáticamente
+            // Ahora esperamos a que el usuario haga clic en el botón "Conectarse"
+
             console.log("Inicialización completa");
+        },
+
+        connect: function() {
+            return connectAndSubscribe();
         },
 
         publishPoint: function (px, py) {
@@ -94,9 +124,10 @@ var app = (function () {
 
             // Verificar que el cliente STOMP esté conectado
             if (stompClient && stompClient.connected) {
-                // Publicar el punto a otros clientes
-                stompClient.send("/topic/newpoint", {}, JSON.stringify(pt));
-                console.log("Punto enviado por STOMP");
+                // Publicar el punto a otros clientes usando el tópico dinámico
+                var topic = '/topic/newpoint.' + drawingId;
+                stompClient.send(topic, {}, JSON.stringify(pt));
+                console.log("Punto enviado por STOMP a " + topic);
             } else {
                 console.error("Error: STOMP no está conectado, no se puede enviar el punto");
             }
@@ -105,9 +136,17 @@ var app = (function () {
         disconnect: function () {
             if (stompClient !== null) {
                 stompClient.disconnect();
+                document.getElementById("status").innerText = "Desconectado";
+                document.getElementById("connectBtn").disabled = false;
+                document.getElementById("drawingId").disabled = false;
             }
             console.log("Disconnected");
         }
     };
 
 })();
+
+// Inicializar la aplicación cuando se carga la página
+document.addEventListener("DOMContentLoaded", function() {
+    app.init();
+});

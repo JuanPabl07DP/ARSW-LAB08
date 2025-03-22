@@ -11,8 +11,14 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 
-<body onload="app.init()">
+<body>
 <h1>Dibujo Colaborativo</h1>
+<div class="controls">
+    <label for="drawingId">ID del Dibujo:</label>
+    <input type="number" id="drawingId" min="1">
+    <button id="connectBtn" onclick="app.connect()">Conectarse</button>
+    <span id="status">Desconectado</span>
+</div>
 <canvas id="canvas" width="800" height="600"></canvas>
 </body>
 </html>
