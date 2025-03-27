@@ -2,7 +2,7 @@
 ### Arquitecturas de Software - ARSW
 ### Laboratorio - Broker de Mensajes STOMP con WebSockets + HTML5 Canvas.
 
-
+## Hecho por: Nicolas Bernal-Juan Pablo Daza
 
 - Conectarse con un botón
 - publicar con eventos de mouse
