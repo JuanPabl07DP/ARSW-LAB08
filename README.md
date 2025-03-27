@@ -70,6 +70,14 @@ Para hacer mas útil la aplicación, en lugar de capturar las coordenadas con ca
 
 ![](img/gif1.gif)
 
+Tambien se muestra que se ve en otro computador:
+
+![image](https://github.com/user-attachments/assets/c31e9f6b-d05e-4570-aba4-81fa02fd4a7f)
+
+![image](https://github.com/user-attachments/assets/08f946a5-ac73-4b2f-86b7-384b6e8fa945)
+
+
+
 5. Haga commit de lo realizado, para marcar el avance de la parte 2.
 
 	```bash
